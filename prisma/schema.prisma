@@ -75,6 +75,8 @@ model Subject {
   reservations SubjectReservation[]
   grades    Grade[]
 
+  @@unique([courseId, code])
+
   @@map("subjects")
 }
 
@@ -87,6 +89,8 @@ model SubjectReservation {
 
   student    Student @relation(fields: [studentId], references: [id])
   subject    Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId])
 
   @@map("subject_reservations")
 }
@@ -110,6 +114,8 @@ model Grade {
   course    Course  @relation(fields: [courseId], references: [id])
   encodedBy User    @relation("EncodedBy", fields: [encodedByUserId], references: [id])
 
+
+  @@unique([studentId, subjectId, courseId])
   @@map("grades")
 }
 
