@@ -54,4 +54,22 @@ export class StudentsController {
   remove(@Param('id') id: string) {
     return this.studentsService.remove(id);
   }
+
+  @Delete('bulk')
+  async bulkDelete(@Body('ids') ids: string[]) {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return {
+        success: false,
+        message: 'No IDs provided for deletion.',
+      };
+    }
+
+    const deletedCount = await this.studentsService.bulkDelete(ids);
+
+    return {
+      success: true,
+      message: `${deletedCount} student(s) deleted successfully.`,
+      deletedCount,
+    };
+  }
 }

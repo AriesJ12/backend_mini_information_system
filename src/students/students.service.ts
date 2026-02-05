@@ -99,4 +99,16 @@ export class StudentsService {
       throw new NotFoundException(`Student #${id} not found`);
     }
   }
+
+  async bulkDelete(ids: string[]): Promise<number> {
+    // Prisma deleteMany with `in` filter
+    const result = await this.prisma.student.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    // result.count = number of deleted rows
+    return result.count;
+  }
 }

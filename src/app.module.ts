@@ -10,6 +10,7 @@ import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { StudentsModule } from './students/students.module';
+import { CoursesModule } from './courses/courses.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { StudentsModule } from './students/students.module';
     UserModule,
     AuthModule,
     StudentsModule,
+    CoursesModule,
   ],
   controllers: [AppController],
   providers: [
