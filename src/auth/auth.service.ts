@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../../generated/prisma/client';
+import { SignInDto } from './dto/signin.dto';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +12,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string) : Promise<{ access_token: string }> {
+  async login(userToFind: SignInDto) : Promise<{ access_token: string }> {
+    const email = userToFind.email;
+    const password = userToFind.password;
     const user = await this.userService.findByEmail(email);
 
     if (!user) {
