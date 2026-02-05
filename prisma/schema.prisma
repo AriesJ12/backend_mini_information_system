@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  passwordHash String @map("password_hash")
+  role      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  grades    Grade[]  @relation("EncodedBy")
+
+  @@map("users")
+}
+
+model Course {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  name        String
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  students    Student[]
+  subjects    Subject[]
+  grades      Grade[]
+
+  @@map("courses")
+}
+
+model Student {
+  id          String   @id @default(uuid())
+  studentNo   String   @unique @map("student_no")
+  firstName   String   @map("first_name")
+  lastName    String   @map("last_name")
+  email       String?  @unique
+  birthDate   DateTime @map("birth_date")
+  courseId    String   @map("course_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  course      Course   @relation(fields: [courseId], references: [id])
+  reservations SubjectReservation[]
+  grades      Grade[]
+
+  @@map("students")
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  courseId  String   @map("course_id")
+  code      String
+  title     String
+  units     Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  course    Course   @relation(fields: [courseId], references: [id])
+  reservations SubjectReservation[]
+  grades    Grade[]
+
+  @@map("subjects")
+}
+
+model SubjectReservation {
+  id         String   @id @default(uuid())
+  studentId String   @map("student_id")
+  subjectId String   @map("subject_id")
+  reservedAt DateTime @default(now()) @map("reserved_at")
+  status     ReservationStatus
+
+  student    Student @relation(fields: [studentId], references: [id])
+  subject    Subject @relation(fields: [subjectId], references: [id])
+
+  @@map("subject_reservations")
+}
+
+model Grade {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  subjectId String   @map("subject_id")
+  courseId  String   @map("course_id")
+  prelim    Decimal?
+  midterm   Decimal?
+  finals    Decimal?
+  finalGrade Decimal? @map("final_grade")
+  remarks   String?
+  encodedByUserId String @map("encoded_by_user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student   Student @relation(fields: [studentId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  course    Course  @relation(fields: [courseId], references: [id])
+  encodedBy User    @relation("EncodedBy", fields: [encodedByUserId], references: [id])
+
+  @@map("grades")
+}
+
+enum ReservationStatus {
+  reserved
+  cancelled
+}
