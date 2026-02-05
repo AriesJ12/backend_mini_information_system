@@ -14,18 +14,25 @@ export class StudentsService {
 
   async findAll({
     search,
+    courseId,
     page,
     limit,
+    sortBy,
+    order,
   }: {
     search?: string;
+    courseId?: string;
     page?: string;
     limit?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
   }) {
     const take = limit ? parseInt(limit) : 10;
     const skip = page ? (parseInt(page) - 1) * take : 0;
 
     const where: Prisma.StudentWhereInput = {};
 
+    // Search by firstName or lastName
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
@@ -33,12 +40,38 @@ export class StudentsService {
       ];
     }
 
-    return this.prisma.student.findMany({
-      where,
-      skip,
-      take,
-      orderBy: { createdAt: 'desc' }, // optional: latest first
-    });
+    // Filter by courseId
+    if (courseId) {
+      where.courseId = courseId;
+    }
+
+    // Sorting
+    const orderBy: Prisma.StudentOrderByWithRelationInput = {};
+    if (sortBy) {
+      orderBy[sortBy] = order || 'asc';
+    } else {
+      orderBy['createdAt'] = 'desc';
+    }
+
+    const [students, total] = await Promise.all([
+      this.prisma.student.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+      }),
+      this.prisma.student.count({ where }),
+    ]);
+
+    return {
+      data: students,
+      meta: {
+        total, // number of data targetted by the search
+        page: page ? parseInt(page) : 1,
+        limit: take, // total present in the data
+        totalPages: Math.ceil(total / take),
+      },
+    };
   }
 
   async findOne(id: string) {

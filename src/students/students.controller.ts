@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { Prisma } from 'generated/prisma/client';
 @Controller('students')
@@ -13,19 +22,31 @@ export class StudentsController {
   @Get()
   findAll(
     @Query('search') search?: string,
+    @Query('courseId') courseId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'asc' | 'desc',
   ) {
-    return this.studentsService.findAll({ search, page, limit });
+    return this.studentsService.findAll({
+      search,
+      courseId,
+      page,
+      limit,
+      sortBy,
+      order,
+    });
   }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStudentDto: Prisma.StudentUpdateInput) {
+  update(
+    @Param('id') id: string,
+    @Body() updateStudentDto: Prisma.StudentUpdateInput,
+  ) {
     return this.studentsService.update(id, updateStudentDto);
   }
 
