@@ -20,13 +20,18 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   passwordHash String @map("password_hash")
-  role      String
+  role      Role
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   grades    Grade[]  @relation("EncodedBy")
 
   @@map("users")
+}
+
+enum Role {
+  admin
+  encoder
 }
 
 model Course {
