@@ -10,23 +10,20 @@ interface AuthRequest extends Request {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
-  // TODO
   @Get("me")
   getInfo(@Req() request: AuthRequest) {
     return request.user;
   }
   
   @Public()
-  @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body(ValidationPipe) signInDto: SignInDto) {
     return this.authService.login(signInDto);
   }
 
   @Post("logout")
-  @HttpCode(HttpStatus.OK)
   signOut(){
     return { message: 'Logged out successfully' };
   }

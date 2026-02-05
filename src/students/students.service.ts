@@ -1,26 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { CreateStudentDto } from './dto/create-student.dto';
-import { UpdateStudentDto } from './dto/update-student.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from 'generated/prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class StudentsService {
-  create(createStudentDto: CreateStudentDto) {
-    return 'This action adds a new student';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createStudentDto: Prisma.StudentCreateInput) {
+    return this.prisma.student.create({
+      data: createStudentDto,
+    });
   }
 
-  findAll() {
-    return `This action returns all students`;
+  async findAll({
+    search,
+    page,
+    limit,
+  }: {
+    search?: string;
+    page?: string;
+    limit?: string;
+  }) {
+    const take = limit ? parseInt(limit) : 10;
+    const skip = page ? (parseInt(page) - 1) * take : 0;
+
+    const where: Prisma.StudentWhereInput = {};
+
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return this.prisma.student.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' }, // optional: latest first
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} student`;
+  async findOne(id: string) {
+    const student = await this.prisma.student.findUnique({ where: { id } });
+    if (!student) throw new NotFoundException(`Student #${id} not found`);
+    return student;
   }
 
-  update(id: number, updateStudentDto: UpdateStudentDto) {
-    return `This action updates a #${id} student`;
+  async update(id: string, updateStudentDto: Prisma.StudentUpdateInput) {
+    try {
+      return await this.prisma.student.update({
+        where: { id },
+        data: updateStudentDto,
+      });
+    } catch {
+      throw new NotFoundException(`Student #${id} not found`);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async remove(id: string) {
+    try {
+      await this.prisma.student.delete({ where: { id } });
+      return; // For 204 No Content, return nothing
+    } catch {
+      throw new NotFoundException(`Student #${id} not found`);
+    }
   }
 }

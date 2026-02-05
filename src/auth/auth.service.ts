@@ -8,8 +8,8 @@ import { SignInDto } from './dto/signin.dto';
 @Injectable()
 export class AuthService {
     constructor(
-    private userService: UserService,
-    private jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async login(userToFind: SignInDto) : Promise<{ access_token: string }> {
