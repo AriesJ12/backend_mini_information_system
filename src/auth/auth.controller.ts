@@ -1,8 +1,7 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, ValidationPipe, Get, Req } from '@nestjs/common';
+import { Body, Controller, Post, ValidationPipe, Get, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Public } from 'src/public/public.decorator';
+import { Public } from '../public/public.decorator';
 import { SignInDto } from './dto/signin.dto';
-import { JwtPayload } from './jwt-payload.interface';
 
 interface AuthRequest extends Request {
   user?: any; // or a specific User type
