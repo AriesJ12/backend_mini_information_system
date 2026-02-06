@@ -6,9 +6,9 @@ import { ReservationStatus } from 'generated/prisma/enums';
 export class ReservationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listReservations(studentId: string) {
+  async listReservations(studentId?: string) {
     return this.prisma.subjectReservation.findMany({
-      where: { studentId },
+      where: studentId ? { studentId } : {},
       include: { subject: true },
       orderBy: { reservedAt: 'desc' },
     });
