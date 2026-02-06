@@ -21,7 +21,9 @@ describe('CoursesController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     prisma = app.get(PrismaService);
@@ -46,7 +48,11 @@ describe('CoursesController (e2e)', () => {
   });
 
   it('should create a course', async () => {
-    const createDto = { code: 'CS101', name: 'Intro to CS', description: 'Basics of CS' };
+    const createDto = {
+      code: 'CS101',
+      name: 'Intro to CS',
+      description: 'Basics of CS',
+    };
 
     const res = await request(app.getHttpServer())
       .post('/courses')
@@ -67,6 +73,46 @@ describe('CoursesController (e2e)', () => {
 
     expect(res.body.data.length).toBeGreaterThanOrEqual(1);
     expect(res.body.meta).toHaveProperty('total');
+  });
+
+  it('should paginate courses', async () => {
+    // Seed multiple courses
+    await prisma.course.createMany({
+      data: [
+        { code: 'PG1', name: 'Paginated 1' },
+        { code: 'PG2', name: 'Paginated 2' },
+        { code: 'PG3', name: 'Paginated 3' },
+        { code: 'PG4', name: 'Paginated 4' },
+      ],
+    });
+
+    const res = await request(app.getHttpServer())
+      .get('/courses?page=1&limit=2')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(res.body.data.length).toBe(2);
+    expect(res.body.meta.page).toBe(1);
+    expect(res.body.meta.limit).toBe(2);
+    expect(res.body.meta.total).toBeGreaterThanOrEqual(4);
+    expect(res.body.meta.totalPages).toBeGreaterThanOrEqual(2);
+  });
+
+  it('should filter courses by search term', async () => {
+    await prisma.course.createMany({
+      data: [
+        { code: 'MATH101', name: 'Calculus' },
+        { code: 'PHY101', name: 'Physics' },
+      ],
+    });
+
+    const res = await request(app.getHttpServer())
+      .get('/courses?search=math')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].code).toBe('MATH101');
   });
 
   it('should get a single course', async () => {
@@ -100,8 +146,12 @@ describe('CoursesController (e2e)', () => {
 
   it('should bulk delete courses', async () => {
     // Create extra courses to test bulk deletion
-    const c1 = await prisma.course.create({ data: { code: 'CS102', name: 'Course 2' } });
-    const c2 = await prisma.course.create({ data: { code: 'CS103', name: 'Course 3' } });
+    const c1 = await prisma.course.create({
+      data: { code: 'CS102', name: 'Course 2' },
+    });
+    const c2 = await prisma.course.create({
+      data: { code: 'CS103', name: 'Course 3' },
+    });
 
     const res = await request(app.getHttpServer())
       .delete('/courses/bulk')
@@ -112,5 +162,4 @@ describe('CoursesController (e2e)', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.deletedCount).toBe(2);
   });
-
 });
