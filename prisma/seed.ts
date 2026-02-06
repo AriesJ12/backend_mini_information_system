@@ -1,19 +1,15 @@
 import { PrismaClient, Role } from '../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaPg } from '@prisma/adapter-pg';
+import 'dotenv/config';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
-const prisma = new PrismaClient({ adapter })
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   try {
     console.log('Starting seed...');
 
-    /**
-     * DELETE ORDER (respect FK constraints)
-     * We are NOT touching reservations or grades per instruction,
-     * but still deleting them defensively in case they exist.
-     */
     await prisma.grade.deleteMany();
     await prisma.subjectReservation.deleteMany();
     await prisma.student.deleteMany();
@@ -24,11 +20,17 @@ async function main() {
     /**
      * ADMIN USER
      */
-    const adminPassword = await bcrypt.hash('Admin123!', 10);
+    const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
 
-    const admin = await prisma.user.create({
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      throw new Error('Missing ADMIN_EMAIL or ADMIN_PASSWORD env variables');
+    }
+
+    const adminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
+    await prisma.user.create({
       data: {
-        email: 'admin@example.com',
+        email: ADMIN_EMAIL,
         passwordHash: adminPassword,
         role: Role.admin,
       },
@@ -72,22 +74,72 @@ async function main() {
     await prisma.subject.createMany({
       data: [
         // BSCS
-        { courseId: courses[0].id, code: 'CS101', title: 'Introduction to Programming', units: 3 },
-        { courseId: courses[0].id, code: 'CS102', title: 'Data Structures', units: 3 },
-        { courseId: courses[0].id, code: 'CS103', title: 'Databases', units: 3 },
+        {
+          courseId: courses[0].id,
+          code: 'CS101',
+          title: 'Introduction to Programming',
+          units: 3,
+        },
+        {
+          courseId: courses[0].id,
+          code: 'CS102',
+          title: 'Data Structures',
+          units: 3,
+        },
+        {
+          courseId: courses[0].id,
+          code: 'CS103',
+          title: 'Databases',
+          units: 3,
+        },
 
         // BSBA
-        { courseId: courses[1].id, code: 'BA101', title: 'Principles of Management', units: 3 },
-        { courseId: courses[1].id, code: 'BA102', title: 'Financial Accounting', units: 3 },
+        {
+          courseId: courses[1].id,
+          code: 'BA101',
+          title: 'Principles of Management',
+          units: 3,
+        },
+        {
+          courseId: courses[1].id,
+          code: 'BA102',
+          title: 'Financial Accounting',
+          units: 3,
+        },
 
         // BSME
-        { courseId: courses[2].id, code: 'ME101', title: 'Engineering Mathematics', units: 3 },
-        { courseId: courses[2].id, code: 'ME102', title: 'Thermodynamics', units: 3 },
-        { courseId: courses[2].id, code: 'ME103', title: 'Fluid Mechanics', units: 3 },
+        {
+          courseId: courses[2].id,
+          code: 'ME101',
+          title: 'Engineering Mathematics',
+          units: 3,
+        },
+        {
+          courseId: courses[2].id,
+          code: 'ME102',
+          title: 'Thermodynamics',
+          units: 3,
+        },
+        {
+          courseId: courses[2].id,
+          code: 'ME103',
+          title: 'Fluid Mechanics',
+          units: 3,
+        },
 
         // BSPY
-        { courseId: courses[3].id, code: 'PY101', title: 'General Psychology', units: 3 },
-        { courseId: courses[3].id, code: 'PY102', title: 'Cognitive Psychology', units: 3 },
+        {
+          courseId: courses[3].id,
+          code: 'PY101',
+          title: 'General Psychology',
+          units: 3,
+        },
+        {
+          courseId: courses[3].id,
+          code: 'PY102',
+          title: 'Cognitive Psychology',
+          units: 3,
+        },
       ],
     });
 
@@ -123,10 +175,10 @@ async function main() {
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
