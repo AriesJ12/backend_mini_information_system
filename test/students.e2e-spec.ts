@@ -18,7 +18,9 @@ describe('StudentsController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     prisma = app.get(PrismaService);
@@ -26,7 +28,7 @@ describe('StudentsController (e2e)', () => {
     // Login first
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD});
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
     token = loginRes.body.access_token;
 
     // Create a course to link students to
@@ -34,6 +36,32 @@ describe('StudentsController (e2e)', () => {
       data: { code: 'CS101', name: 'Intro to CS' },
     });
     courseId = course.id;
+
+    await prisma.student.createMany({
+      data: [
+        {
+          studentNo: 'S90001',
+          firstName: 'Anna',
+          lastName: 'Taylor',
+          birthDate: new Date('2000-01-01'),
+          courseId,
+        },
+        {
+          studentNo: 'S90002',
+          firstName: 'Annabelle',
+          lastName: 'Smith',
+          birthDate: new Date('2000-01-01'),
+          courseId,
+        },
+        {
+          studentNo: 'S90003',
+          firstName: 'Brian',
+          lastName: 'Johnson',
+          birthDate: new Date('2000-01-01'),
+          courseId,
+        },
+      ],
+    });
   });
 
   afterAll(async () => {
@@ -72,6 +100,58 @@ describe('StudentsController (e2e)', () => {
 
     expect(res.body.data.length).toBeGreaterThanOrEqual(1);
     expect(res.body.meta.total).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should search students by first name', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/students')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ search: 'Anna' })
+      .expect(200);
+
+    expect(res.body.data.length).toBeGreaterThanOrEqual(2);
+
+    const names = res.body.data.map((s) => s.firstName);
+    expect(names).toEqual(expect.arrayContaining(['Anna', 'Annabelle']));
+  });
+
+  it('should return empty data for unmatched search', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/students')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ search: 'NonExistentName' })
+      .expect(200);
+
+    expect(res.body.data).toHaveLength(0);
+    expect(res.body.meta.total).toBe(0);
+  });
+
+  it('should paginate students (page 1)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/students')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ page: 1, pageSize: 2 })
+      .expect(200);
+
+    expect(res.body.data).toHaveLength(2);
+    expect(res.body.meta.page).toBe(1);
+    expect(res.body.meta.pageSize).toBe(2);
+    expect(res.body.meta.total).toBeGreaterThanOrEqual(3);
+  });
+
+  it('should paginate searched results', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/students')
+      .set('Authorization', `Bearer ${token}`)
+      .query({
+        search: 'Ann',
+        page: 1,
+        pageSize: 1,
+      })
+      .expect(200);
+
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.meta.total).toBeGreaterThanOrEqual(2);
   });
 
   it('should get a single student', async () => {
@@ -143,7 +223,9 @@ describe('StudentsController (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
-    const exists = await prisma.student.findUnique({ where: { id: student.id } });
+    const exists = await prisma.student.findUnique({
+      where: { id: student.id },
+    });
     expect(exists).toBeNull();
   });
 });
