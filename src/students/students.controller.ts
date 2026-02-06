@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
