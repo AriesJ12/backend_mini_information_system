@@ -13,6 +13,7 @@ import { StudentsModule } from './students/students.module';
 import { CoursesModule } from './courses/courses.module';
 import { GradesModule } from './grades/grades.module';
 import { SubjectsModule } from './subjects/subjects.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SubjectsModule } from './subjects/subjects.module';
     CoursesModule,
     GradesModule,
     SubjectsModule,
+    ReservationsModule,
   ],
   controllers: [AppController],
   providers: [

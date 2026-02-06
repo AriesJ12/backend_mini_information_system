@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GradesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: {
     courseId?: string;
