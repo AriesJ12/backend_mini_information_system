@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma, Student } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -12,64 +12,61 @@ export class StudentsService {
     });
   }
 
-  async findAll({
-    search,
-    courseId,
-    page,
-    limit,
-    sortBy,
-    order,
-  }: {
+  async findAll(params: {
     search?: string;
     courseId?: string;
-    page?: string;
-    limit?: string;
-    sortBy?: string;
-    order?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
+    sortBy?: keyof Student;
+    sortOrder?: 'asc' | 'desc';
   }) {
-    const take = limit ? parseInt(limit) : 10;
-    const skip = page ? (parseInt(page) - 1) * take : 0;
+    const {
+      search,
+      courseId,
+      page = 1,
+      pageSize = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = params;
 
-    const where: Prisma.StudentWhereInput = {};
+    const skip = (page - 1) * pageSize;
 
-    // Search by firstName or lastName
-    if (search) {
-      where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-      ];
-    }
+    const where: Prisma.StudentWhereInput = {
+      ...(courseId && {
+        courseId: courseId, // ✅ FK filter (course_id)
+      }),
+      ...(search && {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { studentNo: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
 
-    // Filter by courseId
-    if (courseId) {
-      where.courseId = courseId;
-    }
-
-    // Sorting
-    const orderBy: Prisma.StudentOrderByWithRelationInput = {};
-    if (sortBy) {
-      orderBy[sortBy] = order || 'asc';
-    } else {
-      orderBy['createdAt'] = 'desc';
-    }
-
-    const [students, total] = await Promise.all([
+    const [data, total] = await Promise.all([
       this.prisma.student.findMany({
         where,
         skip,
-        take,
-        orderBy,
+        take: pageSize,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        include: {
+          course: true,
+        },
       }),
       this.prisma.student.count({ where }),
     ]);
 
     return {
-      data: students,
+      data,
       meta: {
-        total, // number of data targetted by the search
-        page: page ? parseInt(page) : 1,
-        limit: take, // total present in the data
-        totalPages: Math.ceil(total / take),
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
       },
     };
   }

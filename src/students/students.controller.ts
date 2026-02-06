@@ -24,17 +24,17 @@ export class StudentsController {
     @Query('search') search?: string,
     @Query('courseId') courseId?: string,
     @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('order') order?: 'asc' | 'desc',
+    @Query('pageSize') pageSize?: string,
+    @Query('sortBy') sortBy?: any,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
   ) {
     return this.studentsService.findAll({
       search,
       courseId,
-      page,
-      limit,
+      page: page ? Number(page) : undefined,
+      pageSize: pageSize ? Number(pageSize) : undefined,
       sortBy,
-      order,
+      sortOrder,
     });
   }
   @Get(':id')
