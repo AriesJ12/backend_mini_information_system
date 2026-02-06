@@ -50,11 +50,6 @@ export class StudentsController {
     return this.studentsService.update(id, updateStudentDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.studentsService.remove(id);
-  }
-
   @Delete('bulk')
   async bulkDelete(@Body('ids') ids: string[]) {
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -72,4 +67,11 @@ export class StudentsController {
       deletedCount,
     };
   }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.studentsService.remove(id);
+  }
+
+ 
 }

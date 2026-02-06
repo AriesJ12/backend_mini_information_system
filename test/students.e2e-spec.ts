@@ -3,6 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from './test-credentials';
 
 describe('StudentsController (e2e)', () => {
   let app: INestApplication;
@@ -25,7 +26,7 @@ describe('StudentsController (e2e)', () => {
     // Login first
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: 'admin', password: 'admin' });
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD});
     token = loginRes.body.access_token;
 
     // Create a course to link students to
