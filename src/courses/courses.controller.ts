@@ -32,11 +32,6 @@ export class CoursesController {
     return this.coursesService.update(id, updateCourseDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.coursesService.remove(id);
-  }
-
   @Delete('bulk')
   bulkDelete(@Body('ids') ids: string[]) {
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -47,5 +42,10 @@ export class CoursesController {
       message: `${deletedCount} course(s) deleted successfully`,
       deletedCount,
     }));
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.coursesService.remove(id);
   }
 }
