@@ -44,13 +44,27 @@ export class SubjectsController {
     return this.subjectsService.update(id, data);
   }
 
+
+  @Delete("bulk")
+  async bulkDelete(@Body('ids') ids: string[]) {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return {
+        success: false,
+        message: 'No IDs provided for deletion.',
+      };
+    }
+
+    const deletedCount = await this.subjectsService.bulkDelete(ids);
+
+    return {
+      success: true,
+      message: `${deletedCount} subject(s) deleted successfully.`,
+      deletedCount,
+    };
+  }
+
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.subjectsService.delete(id);
-  }
-
-  @Delete()
-  bulkDelete(@Body('ids') ids: string[]) {
-    return this.subjectsService.bulkDelete(ids);
   }
 }

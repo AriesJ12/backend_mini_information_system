@@ -81,10 +81,13 @@ export class SubjectsService {
   }
 
   async bulkDelete(ids: string[]) {
-    return this.prisma.subject.deleteMany({
+    const result = await this.prisma.subject.deleteMany({
       where: {
         id: { in: ids },
       },
     });
+
+    // result.count = number of deleted rows
+    return result.count;
   }
 }
