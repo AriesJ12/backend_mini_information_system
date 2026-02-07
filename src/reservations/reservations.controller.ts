@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Patch } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 
 @Controller('students/:id/reservations')
@@ -20,7 +20,7 @@ export class ReservationsController {
   }
 
   
-  @Delete(':reservationId')
+  @Patch(':reservationId')
   cancelReservation(
     @Param('id') studentId: string,
     @Param('reservationId') reservationId: string,

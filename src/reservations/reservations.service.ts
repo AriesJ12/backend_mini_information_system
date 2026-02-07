@@ -13,10 +13,7 @@ export class ReservationsService {
       orderBy: { reservedAt: 'desc' },
     });
   }
-  async reserveSubject(
-    studentId: string,
-    subjectId: string,
-  ) {
+  async reserveSubject(studentId: string, subjectId: string) {
     return this.prisma.subjectReservation.upsert({
       where: {
         studentId_subjectId: {
@@ -35,18 +32,16 @@ export class ReservationsService {
     });
   }
 
-  async cancelReservation(
-    studentId: string,
-    reservationId?: string,
-  ) {
+  async cancelReservation(studentId: string, reservationId: string) {
     if (reservationId) {
-      return this.prisma.subjectReservation.delete({
+      return this.prisma.subjectReservation.update({
         where: { id: reservationId },
+        data: {
+          status: 'cancelled', // ✅ update status to cancelled
+        },
       });
     } else {
       throw new Error('ReservationId must be provided');
     }
   }
-
-  
 }
