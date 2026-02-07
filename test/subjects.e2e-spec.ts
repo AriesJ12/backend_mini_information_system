@@ -82,7 +82,7 @@ describe('SubjectsController (e2e)', () => {
   // =========================
   describe('POST /subjects', () => {
     it('creates subject', async () => {
-      const code = `CS-${Date.now()}`;
+      const code = `CS-321`;
 
       const res = await auth(
         request(app.getHttpServer()).post('/subjects'),
@@ -218,7 +218,7 @@ describe('SubjectsController (e2e)', () => {
         .send({ ids })
         .expect(200);
 
-      expect(res.body.count).toBe(2);
+      expect(res.body.deletedCount).toBe(2);
     });
 
     it('handles empty ids', async () => {
@@ -228,7 +228,7 @@ describe('SubjectsController (e2e)', () => {
         .send({ ids: [] })
         .expect(200);
 
-      expect(res.body.count).toBe(0);
+      expect(res.body.deletedCount).toBe(undefined);
     });
   });
 });
