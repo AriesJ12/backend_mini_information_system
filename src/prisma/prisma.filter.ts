@@ -19,12 +19,34 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     switch (exception.code) {
       case 'P2002':
         status = HttpStatus.CONFLICT;
-        const target = exception.meta?.target
-          ? Array.isArray(exception.meta.target)
-            ? exception.meta.target.join(', ')
-            : exception.meta.target
-          : 'field';
-        message = `Unique constraint failed on ${target}`;
+
+        let columns: string[] = [];
+
+        // Check meta.target first
+        if (Array.isArray(exception.meta?.target)) {
+          columns = exception.meta.target;
+        }
+        // Fallback: check driverAdapterError.cause.constraint.fields safely
+        else if (
+          exception.meta?.driverAdapterError &&
+          typeof exception.meta.driverAdapterError === 'object' &&
+          'cause' in exception.meta.driverAdapterError &&
+          exception.meta.driverAdapterError.cause &&
+          typeof exception.meta.driverAdapterError.cause === 'object' &&
+          'constraint' in exception.meta.driverAdapterError.cause &&
+          exception.meta.driverAdapterError.cause.constraint &&
+          Array.isArray(
+            (exception.meta.driverAdapterError.cause as any).constraint.fields,
+          )
+        ) {
+          columns = (exception.meta.driverAdapterError.cause as any).constraint
+            .fields;
+        } else {
+          columns = ['unknown_column'];
+        }
+
+        const columnNames = columns.join(', ');
+        message = `Unique constraint failed on column(s): ${columnNames}`;
         break;
       case 'P2003':
         status = HttpStatus.BAD_REQUEST;
