@@ -8,18 +8,14 @@ export class GradesController {
 
   @Get()
   findAll(
-    @Query('courseId') courseId?: string,
-    @Query('subjectId') subjectId?: string,
-    @Query('studentId') studentId?: string,
-    @Query('page') page?: string,
-    @Query('pageSize') pageSize?: string,
+    @Query('courseId') courseId: string,
+    @Query('subjectId') subjectId: string,
+    @Query('studentId') studentId: string,
   ) {
     return this.gradesService.findAll({
       courseId,
       subjectId,
       studentId,
-      page: page ? Number(page) : undefined,
-      pageSize: pageSize ? Number(pageSize) : undefined,
     });
   }
 

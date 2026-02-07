@@ -7,21 +7,15 @@ export class GradesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: {
-    courseId?: string;
-    subjectId?: string;
-    studentId?: string;
-    page?: number;
-    pageSize?: number;
+    courseId: string;
+    subjectId: string;
+    studentId: string;
   }) {
     const {
       courseId,
       subjectId,
       studentId,
-      page = 1,
-      pageSize = 10,
     } = params;
-
-    const skip = (page - 1) * pageSize;
 
     const where: Prisma.GradeWhereInput = {
       ...(courseId && { courseId }),
@@ -29,11 +23,9 @@ export class GradesService {
       ...(studentId && { studentId }),
     };
 
-    const [data, total] = await Promise.all([
+    const [data] = await Promise.all([
       this.prisma.grade.findMany({
         where,
-        skip,
-        take: pageSize,
         orderBy: {
           createdAt: 'desc',
         },
@@ -48,12 +40,6 @@ export class GradesService {
 
     return {
       data,
-      meta: {
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
-      },
     };
   }
 
